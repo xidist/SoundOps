@@ -22,7 +22,7 @@ class Settings:
     preload_model: bool = True
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         return cls(
             app_name=os.getenv("SOUNDOPS_APP_NAME", "SoundOps"),
             app_version=os.getenv("SOUNDOPS_APP_VERSION", "0.1.0"),

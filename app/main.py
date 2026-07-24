@@ -6,7 +6,7 @@ import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, Response
@@ -127,11 +127,13 @@ def create_app(
 
     @app.post("/predict", tags=["inference"])
     async def predict(
-        file: UploadFile = File(
-            ...,
+    file: Annotated[
+        UploadFile,
+        File(
             description="Audio file such as WAV, MP3, FLAC, M4A, or OGG.",
         ),
-    ) -> dict[str, Any]:
+    ],
+) -> dict[str, Any]:
         content_type = (file.content_type or "").lower()
         if content_type and (
             content_type not in ALLOWED_CONTENT_TYPES

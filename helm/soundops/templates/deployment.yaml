@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "soundops.fullname" . }}
+  labels:
+    {{- include "soundops.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      {{- include "soundops.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+      labels:
+        {{- include "soundops.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "soundops.fullname" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: soundops
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: SOUNDOPS_MODEL_ID
+              value: {{ .Values.model.id | quote }}
+            - name: SOUNDOPS_TOP_K
+              value: {{ .Values.model.topK | quote }}
+            - name: SOUNDOPS_MAX_UPLOAD_MB
+              value: {{ .Values.model.maxUploadMb | quote }}
+            - name: SOUNDOPS_DEVICE
+              value: {{ .Values.model.device | quote }}
+            - name: HF_HOME
+              value: /home/soundops/.cache/huggingface
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          volumeMounts:
+            - name: hf-cache
+              mountPath: /home/soundops/.cache/huggingface
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: hf-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

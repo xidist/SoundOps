@@ -1,0 +1,11 @@
+SoundOps has been installed.
+
+Watch the model initialize:
+  kubectl get pods -n {{ .Release.Namespace }} -w
+  kubectl logs -n {{ .Release.Namespace }} deployment/{{ include "soundops.fullname" . }} -f
+
+Open the UI:
+  kubectl port-forward -n {{ .Release.Namespace }} service/{{ include "soundops.fullname" . }} 8000:{{ .Values.service.port }}
+
+Then visit:
+  http://127.0.0.1:8000

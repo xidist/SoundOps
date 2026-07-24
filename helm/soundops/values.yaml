@@ -1,0 +1,85 @@
+replicaCount: 1
+
+image:
+  repository: soundops
+  tag: "0.1.0"
+  pullPolicy: Never
+
+model:
+  id: "MIT/ast-finetuned-audioset-10-10-0.4593"
+  topK: 5
+  maxUploadMb: 15
+  device: -1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 3Gi
+
+startupProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 72
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  periodSeconds: 15
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+quota:
+  enabled: true
+  hard:
+    pods: "5"
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: 8Gi
+
+limitRange:
+  enabled: true
+
+networkPolicy:
+  enabled: true
+  allowMonitoringNamespace: true
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/metrics"
+  prometheus.io/port: "8000"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
